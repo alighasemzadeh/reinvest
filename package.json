@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "prod": "npx scripts/reinvest.mjs"
+    "prod": "node scripts/reinvest.mjs"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,10 @@
   },
   "homepage": "https://github.com/alighasemzadeh/reinvest#readme",
   "dependencies": {
-    "@cosmostation/cosmosjs": "^0.11.2",
+    "@cosmjs/launchpad": "^0.27.1",
+    "@cosmjs/proto-signing": "^0.28.2",
+    "@cosmjs/stargate": "^0.28.2",
+    "axios": "^0.26.1",
     "dotenv": "^16.0.0"
   }
 }
