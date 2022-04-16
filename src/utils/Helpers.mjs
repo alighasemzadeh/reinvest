@@ -30,13 +30,12 @@ export function getTotalRewards(address) {
 }
 
 export function reInvest(address, validatorAddress, amount, denom) {
+    console.log({
+        delegatorAddress: address,
+        validatorAddress: validatorAddress,
+        amount: coin(amount, denom)
+    });
     return [{
-        typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
-        value: MsgWithdrawDelegatorReward.encode(MsgWithdrawDelegatorReward.fromPartial({
-            delegatorAddress: address,
-            validatorAddress: validatorAddress
-        })).finish()
-    }, {
         typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
         value: MsgDelegate.encode(MsgDelegate.fromPartial({
             delegatorAddress: address,

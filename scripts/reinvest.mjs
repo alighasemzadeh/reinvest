@@ -30,7 +30,7 @@ let hdPath = [
 
 
 const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, {
-    prefix: 'chihuahua',
+    prefix: 'osmo',
     hdPaths: [hdPath]
 });
 
@@ -56,12 +56,12 @@ const fee = {
 
 
 
-const totalReward = getTotalRewards(address);
+//const totalReward = getTotalRewards(address);
 
 
-timeStamp('Total reward:', totalReward);
+//timeStamp('Total reward:', totalReward);
 
-const reinvest = await reInvest(address,validator,10000, unit);
+const reinvest = await reInvest(address,validator,100000, unit);
 
 const result = await client.signAndBroadcast(
     address,
