@@ -4,14 +4,29 @@ import {
 
 import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx.js";
 import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx.js";
-
+import axios from "axios";
 
 export function timeStamp(...args) {
     console.log('[' + new Date().toISOString().substring(11, 23) + ']', ...args);
 }
 
-export function getTotalReward(address) {
+export function getTotalRewards(address) {
+    var total = 0;
+    axios.get('https://api.chihuahua.wtf/cosmos/distribution/v1beta1/delegators/'+address+'/rewards')
+        .then(function (response) {
+            // handle success
+            total = response.data.total[0].amount;
+        })
+        .catch(function (error) {
+            // handle error
+            console.log(error);
+            total = 0;
+        })
+        .then(function () {
+            total = 0;
+        });
 
+    return total
 }
 
 export function reInvest(address, validatorAddress, amount, denom) {
@@ -29,25 +44,4 @@ export function reInvest(address, validatorAddress, amount, denom) {
             amount: coin(amount, denom)
         })).finish()
     }]
-}
-
-export function getTotalRewards(client, address, validators) {
-    let timeout = 5000
-    return client.queryClient.getRewards(address, { timeout })
-        .then(
-            (rewards) => {
-                const total = Object.values(rewards).reduce((sum, item) => {
-                    const reward = item.reward.find(el => el.denom === client.network.denom)
-                    if (reward && validators.includes(item.validator_address)) {
-                        return sum + parseInt(reward.amount)
-                    }
-                    return sum
-                }, 0)
-                return total
-            },
-            (error) => {
-                timeStamp(address, "ERROR skipping this run:", error.message || error)
-                return 0
-            }
-        )
 }

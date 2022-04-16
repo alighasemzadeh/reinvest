@@ -9,11 +9,13 @@ import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1b
 
 const mnemonic = process.env.MNEMONIC;
 const validator = process.env.VALIDATOR;
+const network = process.env.NETWORK;
+const unit = process.env.UNIT;
 
 const directory = CosmosDirectory();
 
-const rpcUrl = directory.rpcUrl('chihuahua');
-const restUrl = directory.restUrl('chihuahua');
+const rpcUrl = directory.rpcUrl(network);
+const restUrl = directory.restUrl(network);
 
 timeStamp('Using REST URL:', restUrl);
 timeStamp('Using RPC URL:', rpcUrl);
@@ -45,7 +47,7 @@ const client = await SigningStargateClient.connectWithSigner(rpcUrl, wallet);
 const fee = {
     amount: [
         {
-            denom: "uhuahua",
+            denom: unit,
             amount: "2000",
         },
     ],
@@ -54,7 +56,12 @@ const fee = {
 
 
 
-const reinvest = await reInvest(address,validator,1000, 'uhuahua');
+const totalReward = getTotalRewards(address);
+
+
+timeStamp('Total reward:', totalReward);
+
+const reinvest = await reInvest(address,validator,10000, unit);
 
 const result = await client.signAndBroadcast(
     address,
