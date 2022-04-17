@@ -1,10 +1,10 @@
 import 'dotenv/config'
 import '../src/utils/Helpers.mjs';
 import CosmosDirectory from '../src/utils/CosmosDirectory.mjs';
-import {timeStamp, reInvest, getTotalRewards} from "../src/utils/Helpers.mjs";
+import {timeStamp} from "../src/utils/Helpers.mjs";
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
-import { Slip10RawIndex, pathToString } from "@cosmjs/crypto";
-import {coin, SigningStargateClient, StargateClient} from "@cosmjs/stargate";
+import { Slip10RawIndex } from "@cosmjs/crypto";
+import {coin, SigningStargateClient} from "@cosmjs/stargate";
 import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx.js";
 import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx.js";
 
@@ -13,6 +13,8 @@ const validator = process.env.VALIDATOR;
 const network = process.env.NETWORK;
 const unit = process.env.UNIT;
 const prefix = process.env.PREFIX;
+const feeAmount = process.env.FEE_AMOUNT;
+const gas = process.env.GAS;
 
 const directory = CosmosDirectory();
 
@@ -44,37 +46,41 @@ timeStamp('Validator Address:', validator);
 
 const client = await SigningStargateClient.connectWithSigner(rpcUrl, wallet);
 
-
-
 const fee = {
     amount: [
         {
             denom: unit,
-            amount: "2000",
+            amount: feeAmount,
         },
     ],
-    gas: "180000", // 180k
+    gas: gas, // 180k
 };
 
-
-
-//const totalReward = getTotalRewards(address);
-
-
-//timeStamp('Total reward:', totalReward);
+const balance = await client.getBalance(address, unit)
+        .then(
+            (balance) => {
+                timeStamp("Total balance:", balance.amount - 100000);
+                return balance;
+            }
+        )
 
 const result = await client.signAndBroadcast(
     address,
-    [{
+    [
+        {
         typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
-        value: MsgDelegate.encode(MsgDelegate.fromPartial({
+        value: MsgDelegate.fromPartial({
             delegatorAddress: address,
             validatorAddress: validator,
-            amount: coin(10000, unit)
-        })).finish()
+            amount: coin(balance.amount - 100000, unit)
+        })
     }],
     fee,
     ""
-);
+).then((result) => {
+    timeStamp("Successfully broadcast.");
+}, (error) => {
+    timeStamp('Failed to broadcast:', error.message)
+});
 
-timeStamp(result);
+
