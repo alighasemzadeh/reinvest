@@ -4,13 +4,15 @@ import CosmosDirectory from '../src/utils/CosmosDirectory.mjs';
 import {timeStamp, reInvest, getTotalRewards} from "../src/utils/Helpers.mjs";
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { Slip10RawIndex, pathToString } from "@cosmjs/crypto";
-import { SigningStargateClient, StargateClient } from "@cosmjs/stargate";
+import {coin, SigningStargateClient, StargateClient} from "@cosmjs/stargate";
 import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx.js";
+import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx.js";
 
 const mnemonic = process.env.MNEMONIC;
 const validator = process.env.VALIDATOR;
 const network = process.env.NETWORK;
 const unit = process.env.UNIT;
+const prefix = process.env.PREFIX;
 
 const directory = CosmosDirectory();
 
@@ -30,7 +32,7 @@ let hdPath = [
 
 
 const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, {
-    prefix: 'osmo',
+    prefix: prefix,
     hdPaths: [hdPath]
 });
 
@@ -61,11 +63,16 @@ const fee = {
 
 //timeStamp('Total reward:', totalReward);
 
-const reinvest = await reInvest(address,validator,100000, unit);
-
 const result = await client.signAndBroadcast(
     address,
-    reinvest,
+    [{
+        typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
+        value: MsgDelegate.encode(MsgDelegate.fromPartial({
+            delegatorAddress: address,
+            validatorAddress: validator,
+            amount: coin(10000, unit)
+        })).finish()
+    }],
     fee,
     ""
 );
