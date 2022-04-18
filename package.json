@@ -5,7 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "prod": "node scripts/reinvest.mjs"
+    "reinvest": "node scripts/reinvest.mjs",
+    "swaptoken": "node scripts/swaptoken.mjs"
   },
   "repository": {
     "type": "git",
