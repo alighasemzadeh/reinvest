@@ -4,11 +4,8 @@ import CosmosDirectory from '../src/utils/CosmosDirectory.mjs';
 import {timeStamp} from "../src/utils/Helpers.mjs";
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { Slip10RawIndex } from "@cosmjs/crypto";
-import {coin, SigningStargateClient} from "@cosmjs/stargate";
-import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx.js";
-import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx.js";
 
-import { messages, getOsmoFee } from '@cosmology/core';
+import { messages, getOsmoFee, lookupRoutesForTrade, getSigningOsmosisClient, prettyPool, OsmosisApiClient,calculateAmountWithSlippage } from '@cosmology/core';
 
 
 const mnemonic = process.env.MNEMONIC;
@@ -42,56 +39,55 @@ const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, {
     hdPaths: [hdPath]
 });
 
+
 const accounts = await wallet.getAccounts();
 const address = accounts[0].address;
 
 timeStamp('Wallet Address:', address);
-timeStamp('Validator Address:', validator);
 
-const client = await SigningStargateClient.connectWithSigner(rpcUrl, wallet);
-
-const fee = {
-    amount: [
-        {
-            denom: unit,
-            amount: feeAmount,
-        },
-    ],
-    gas: gas, // 180k
-};
+const client = await getSigningOsmosisClient({
+    rpcEndpoint: rpcUrl,
+    signer: wallet
+});
 
 const balance = await client.getBalance(address, swapunit)
     .then(
         (balance) => {
-            timeStamp("Total balance:", balance);
             return balance;
         }
     )
 
+const tokenOutMinAmountValue =  calculateAmountWithSlippage(
+    balance.amount,
+    3
+);
+
+const tokenOutMinAmountInt =  Math.floor(tokenOutMinAmountValue);
 
 
+timeStamp('Token In:', balance.amount);
+timeStamp('Token Out:', tokenOutMinAmountValue);
 
-const fee2 = getOsmoFee('swapExactAmountIn');
+const current_fee = getOsmoFee('swapExactAmountIn');
 const msg = messages.swapExactAmountIn({
     sender: address, // osmo address
     routes:[{
-    "poolId": "605",
-    "tokenOutDenom":"uosmo"
+        "poolId": "605",
+        "tokenOutDenom":"uosmo"
     }],
     tokenIn: {
-        "denom":"ibc/B9E0A1A524E98BB407D3CED8720EFEFD186002F90C1B1B7964811DD0CCC12228",
-        "amount":"310681443"
+        "denom":swapunit,
+        "amount":balance.amount
     }, // Coin
-    tokenOutMinAmount: "24201"
+    tokenOutMinAmount: "1000"
 });
 
 
 
 const result = await client.signAndBroadcast(
     address,
-    [
-        msg],
-    fee,
+    [msg],
+    current_fee,
     ""
 ).then((result) => {
     timeStamp("Successfully broadcast.");
