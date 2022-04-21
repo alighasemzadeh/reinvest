@@ -8,6 +8,9 @@ import {coin, SigningStargateClient} from "@cosmjs/stargate";
 import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx.js";
 import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx.js";
 
+import { messages, getOsmoFee } from '@cosmology/core';
+
+
 const mnemonic = process.env.MNEMONIC;
 const validator = process.env.VALIDATOR;
 const network = process.env.NETWORK;
@@ -68,17 +71,26 @@ const balance = await client.getBalance(address, swapunit)
 
 
 
+const fee2 = getOsmoFee('swapExactAmountIn');
+const msg = messages.swapExactAmountIn({
+    sender: address, // osmo address
+    routes:[{
+    "poolId": "605",
+    "tokenOutDenom":"uosmo"
+    }],
+    tokenIn: {
+        "denom":"ibc/B9E0A1A524E98BB407D3CED8720EFEFD186002F90C1B1B7964811DD0CCC12228",
+        "amount":"310681443"
+    }, // Coin
+    tokenOutMinAmount: "24201"
+});
+
+
+
 const result = await client.signAndBroadcast(
     address,
     [
-        {
-            typeUrl: "/osmosis.gamm.v1beta1.MsgSwapExactAmountIn",
-            value: MsgDelegate.fromPartial({
-                delegatorAddress: address,
-                validatorAddress: validator,
-                amount: coin(balance.amount, unit)
-            })
-        }],
+        msg],
     fee,
     ""
 ).then((result) => {

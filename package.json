@@ -19,10 +19,12 @@
   },
   "homepage": "https://github.com/alighasemzadeh/reinvest#readme",
   "dependencies": {
+    "@cosmjs/amino": "^0.28.4",
     "@cosmjs/crypto": "^0.28.2",
     "@cosmjs/launchpad": "^0.27.1",
     "@cosmjs/proto-signing": "^0.28.2",
     "@cosmjs/stargate": "^0.28.2",
+    "@cosmology/core": "^0.2.3",
     "axios": "^0.26.1",
     "dotenv": "^16.0.0",
     "lodash": "^4.17.21"
